@@ -217,77 +217,87 @@ namespace Reqnroll.TestProjectGenerator
 
             _project = new Project(ProjectName, ProjectGuid, Language, TargetFramework, Format, ProjectType);
 
-            _testProjectFolders.PathToNuGetPackages = _project.ProjectFormat == ProjectFormat.Old ? Path.Combine(_testProjectFolders.PathToSolutionDirectory, "packages") : _folders.GlobalNuGetPackages;
+            _testProjectFolders.PathToNuGetPackages = _project.ProjectFormat == ProjectFormat.Old
+                ? Path.Combine(_testProjectFolders.PathToSolutionDirectory, "packages")
+                : _folders.GlobalNuGetPackages;
+
             if (!Directory.Exists(_testProjectFolders.PathToNuGetPackages))
-            {
                 Directory.CreateDirectory(_testProjectFolders.PathToNuGetPackages);
-            }
 
             if (ProjectType is ProjectType.Library or ProjectType.Exe)
-            {
-                _testProjectFolders.ProjectFolder = Path.Combine(_testProjectFolders.PathToSolutionDirectory, _project.Name);
-                _testProjectFolders.ProjectBinOutputPath = Path.Combine(_testProjectFolders.ProjectFolder, GetProjectCompilePath(_project));
-
-                _testProjectFolders.TestAssemblyFileName = $"{_project.Name}.dll";
-                _testProjectFolders.CompiledAssemblyPath = Path.Combine(_testProjectFolders.ProjectBinOutputPath, _testProjectFolders.TestAssemblyFileName);
-
-
-                _project.AddNuGetPackage("Microsoft.NET.Test.Sdk", "17.12.0");
-
-                if (_project.ProjectFormat == ProjectFormat.Old)
-                {
-                    _project.AddNuGetPackage("System.Runtime.CompilerServices.Unsafe", "6.0.0", new NuGetPackageAssembly("System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "netstandard2.0\\System.Runtime.CompilerServices.Unsafe.dll"));
-                }
-
-                if (!IsReqnrollFeatureProject || ForceAddingExplicitReferenceToReqnrollPackage)
-                    _project.AddNuGetPackage("Reqnroll", _currentVersionDriver.ReqnrollNuGetVersion, new NuGetPackageAssembly("Reqnroll", "net462\\Reqnroll.dll"));
-
-                var generator = _bindingsGeneratorFactory.FromLanguage(_project.ProgrammingLanguage);
-                _project.AddFile(generator.GenerateLoggerClass(_testProjectFolders.LogFilePath));
-
-                switch (_project.ProgrammingLanguage)
-                {
-                    case ProgrammingLanguage.FSharp:
-                        AddInitialFSharpReferences();
-                        break;
-                    case ProgrammingLanguage.CSharp73:
-                    case ProgrammingLanguage.CSharp:
-                        AddUnitTestProviderSpecificConfig();
-                        break;
-                }
-
-                switch (Configuration.UnitTestProvider)
-                {
-                    case UnitTestProvider.MSTest:
-                        ConfigureMSTest();
-                        break;
-                    case UnitTestProvider.MSTest4:
-                        ConfigureMSTest4();
-                        break;
-                    case UnitTestProvider.xUnit:
-                        ConfigureXUnit();
-                        break;
-                    case UnitTestProvider.xUnit3:
-                        ConfigureXUnit3();
-                        break;
-                    case UnitTestProvider.NUnit3:
-                        ConfigureNUnit3();
-                        break;
-                    case UnitTestProvider.NUnit4:
-                        ConfigureNUnit4();
-                        break;
-                    case UnitTestProvider.TUnit:
-                        ConfigureTUnit();
-                        break;
-                    default:
-                        throw new InvalidOperationException(@"Invalid unit test provider.");
-                }
-            }
+                InitialiseTestProject();
 
             if (UseIntermediateOutputPathForCodeBehind != null)
                 ConfigureUseIntermediateOutputPathForCodeBehind(UseIntermediateOutputPathForCodeBehind.Value);
 
             AddAdditionalStuff();
+        }
+
+        private void InitialiseTestProject()
+        {
+            _testProjectFolders.ProjectFolder = Path.Combine(_testProjectFolders.PathToSolutionDirectory, _project.Name);
+            _testProjectFolders.ProjectBinOutputPath = Path.Combine(_testProjectFolders.ProjectFolder, GetProjectCompilePath(_project));
+
+            _testProjectFolders.TestAssemblyFileName = $"{_project.Name}.dll";
+            _testProjectFolders.CompiledAssemblyPath = Path.Combine(_testProjectFolders.ProjectBinOutputPath, _testProjectFolders.TestAssemblyFileName);
+
+            _project.AddNuGetPackage("Microsoft.NET.Test.Sdk", "17.12.0");
+
+            if (_project.ProjectFormat == ProjectFormat.Old)
+                _project.AddNuGetPackage("System.Runtime.CompilerServices.Unsafe", "6.0.0", new NuGetPackageAssembly("System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "netstandard2.0\\System.Runtime.CompilerServices.Unsafe.dll"));
+
+            if (!IsReqnrollFeatureProject || ForceAddingExplicitReferenceToReqnrollPackage)
+                _project.AddNuGetPackage("Reqnroll", _currentVersionDriver.ReqnrollNuGetVersion, new NuGetPackageAssembly("Reqnroll", "net462\\Reqnroll.dll"));
+
+            var generator = _bindingsGeneratorFactory.FromLanguage(_project.ProgrammingLanguage);
+            _project.AddFile(generator.GenerateLoggerClass(_testProjectFolders.LogFilePath));
+
+            ConfigureProgrammingLanguageDependencies();
+            ConfigureUnitTestProviderDependencies();
+        }
+
+        private void ConfigureProgrammingLanguageDependencies()
+        {
+            switch (_project.ProgrammingLanguage)
+            {
+                case ProgrammingLanguage.FSharp:
+                    AddInitialFSharpReferences();
+                    break;
+                case ProgrammingLanguage.CSharp73:
+                case ProgrammingLanguage.CSharp:
+                    AddUnitTestProviderSpecificConfig();
+                    break;
+            }
+        }
+
+        private void ConfigureUnitTestProviderDependencies()
+        {
+            switch (Configuration.UnitTestProvider)
+            {
+                case UnitTestProvider.MSTest:
+                    ConfigureMSTest();
+                    break;
+                case UnitTestProvider.MSTest4:
+                    ConfigureMSTest4();
+                    break;
+                case UnitTestProvider.xUnit:
+                    ConfigureXUnit();
+                    break;
+                case UnitTestProvider.xUnit3:
+                    ConfigureXUnit3();
+                    break;
+                case UnitTestProvider.NUnit3:
+                    ConfigureNUnit3();
+                    break;
+                case UnitTestProvider.NUnit4:
+                    ConfigureNUnit4();
+                    break;
+                case UnitTestProvider.TUnit:
+                    ConfigureTUnit();
+                    break;
+                default:
+                    throw new InvalidOperationException(@"Invalid unit test provider.");
+            }
         }
 
         private void ConfigureNUnit3()
