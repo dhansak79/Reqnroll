@@ -65,9 +65,17 @@ namespace Reqnroll.TestProjectGenerator.Driver
             AddHookBinding(_solutionDriver.DefaultProject, eventType, name ?? eventType, code, asyncHook, order, hookTypeAttributeTags, methodScopeAttributeTags, classScopeAttributeTags);
         }
 
-        private void AddHookBinding(ProjectBuilder project, string eventType, string name, string code = "", bool? asyncHook = null, int? order = null, IList<string> hookTypeAttributeTags = null, IList<string> methodScopeAttributeTags = null,  IList<string> classScopeAttributeTags = null)
+        private void AddHookBinding(ProjectBuilder project, string eventType, string name, string code = "", bool? asyncHook = null, int? order = null, IList<string> hookTypeAttributeTags = null, IList<string> methodScopeAttributeTags = null, IList<string> classScopeAttributeTags = null)
         {
-            project.AddHookBinding(eventType, name, code, asyncHook, order, hookTypeAttributeTags, methodScopeAttributeTags, classScopeAttributeTags);
+            project.AddHookBinding(eventType, name, new HookBindingOptions
+            {
+                Code = code,
+                AsyncHook = asyncHook,
+                Order = order,
+                HookTypeAttributeTags = hookTypeAttributeTags,
+                MethodScopeAttributeTags = methodScopeAttributeTags,
+                ClassScopeAttributeTags = classScopeAttributeTags,
+            });
         }
 
         public void AddFeatureFile(string featureFileContent)

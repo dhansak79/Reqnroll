@@ -123,13 +123,13 @@ namespace Reqnroll.TestProjectGenerator
             _project.AddFile(bindingsGenerator.GenerateLoggingStepDefinition(methodName, attributeName, regex, ParameterType.DocString, "docStringArg"));
         }
 
-        public void AddHookBinding(string eventType, string name, string code = "", bool? asyncHook = null, int? order = null, IList<string> hookTypeAttributeTags = null, IList<string> methodScopeAttributeTags = null,
-            IList<string> classScopeAttributeTags = null)
+        public void AddHookBinding(string eventType, string name, HookBindingOptions options = null)
         {
             EnsureProjectExists();
+            options ??= new HookBindingOptions();
 
             var bindingsGenerator = _bindingsGeneratorFactory.FromLanguage(_project.ProgrammingLanguage);
-            _project.AddFile(bindingsGenerator.GenerateHookBinding(eventType, name, code, asyncHook, order, hookTypeAttributeTags, methodScopeAttributeTags, classScopeAttributeTags));
+            _project.AddFile(bindingsGenerator.GenerateHookBinding(eventType, name, options.Code, options.AsyncHook, options.Order, options.HookTypeAttributeTags, options.MethodScopeAttributeTags, options.ClassScopeAttributeTags));
         }
 
         public void AddStepBinding(string bindingCode)
@@ -293,28 +293,14 @@ namespace Reqnroll.TestProjectGenerator
         {
             _project.AddNuGetPackage(NUnit3PackageName, NUnit3PackageVersion);
             _project.AddNuGetPackage(NUnit3TestAdapterPackageName, NUnit3TestAdapterPackageVersion);
-
-
-            if (IsReqnrollFeatureProject)
-            {
-                _project.AddNuGetPackage("Reqnroll.NUnit", _currentVersionDriver.ReqnrollNuGetVersion,
-                    new NuGetPackageAssembly(GetReqnrollPublicAssemblyName("Reqnroll.NUnit.ReqnrollPlugin.dll"), "net462\\Reqnroll.NUnit.ReqnrollPlugin.dll"));
-                Configuration.Plugins.Add(new ReqnrollPlugin("Reqnroll.NUnit", ReqnrollPluginType.Runtime));
-            }
+            AddReqnrollPluginIfFeatureProject("Reqnroll.NUnit", "Reqnroll.NUnit.ReqnrollPlugin.dll");
         }
 
         private void ConfigureNUnit4()
         {
             _project.AddNuGetPackage(NUnit4PackageName, NUnit4PackageVersion);
             _project.AddNuGetPackage(NUnit4TestAdapterPackageName, NUnit4TestAdapterPackageVersion);
-
-
-            if (IsReqnrollFeatureProject)
-            {
-                _project.AddNuGetPackage("Reqnroll.NUnit", _currentVersionDriver.ReqnrollNuGetVersion,
-                    new NuGetPackageAssembly(GetReqnrollPublicAssemblyName("Reqnroll.NUnit.ReqnrollPlugin.dll"), "net462\\Reqnroll.NUnit.ReqnrollPlugin.dll"));
-                Configuration.Plugins.Add(new ReqnrollPlugin("Reqnroll.NUnit", ReqnrollPluginType.Runtime));
-            }
+            AddReqnrollPluginIfFeatureProject("Reqnroll.NUnit", "Reqnroll.NUnit.ReqnrollPlugin.dll");
         }
 
         private void ConfigureXUnit()
@@ -344,24 +330,14 @@ namespace Reqnroll.TestProjectGenerator
                 _project.AddNuGetPackage("Validation", "2.4.18", new NuGetPackageAssembly("Validation, Version=2.4.0.0, Culture=neutral, PublicKeyToken=2fc06f0d701809a7", "net45\\Validation.dll"));
             }
 
-            if (IsReqnrollFeatureProject)
-            {
-                _project.AddNuGetPackage("Reqnroll.xUnit", _currentVersionDriver.ReqnrollNuGetVersion,
-                    new NuGetPackageAssembly(GetReqnrollPublicAssemblyName("Reqnroll.xUnit.ReqnrollPlugin.dll"), "net462\\Reqnroll.xUnit.ReqnrollPlugin.dll"));
-                Configuration.Plugins.Add(new ReqnrollPlugin("Reqnroll.xUnit", ReqnrollPluginType.Runtime));
-            }
+            AddReqnrollPluginIfFeatureProject("Reqnroll.xUnit", "Reqnroll.xUnit.ReqnrollPlugin.dll");
         }
 
         private void ConfigureXUnit3()
         {
             _project.AddNuGetPackage("xunit.v3", XUnit3PackageVersion);
             _project.AddNuGetPackage("xunit.runner.visualstudio", "3.0.2");
-            if (IsReqnrollFeatureProject)
-            {
-                _project.AddNuGetPackage("Reqnroll.xunit.v3", _currentVersionDriver.ReqnrollNuGetVersion,
-                                         new NuGetPackageAssembly(GetReqnrollPublicAssemblyName("Reqnroll.xUnit3.ReqnrollPlugin.dll"), "net462\\Reqnroll.xUnit3.ReqnrollPlugin.dll"));
-                Configuration.Plugins.Add(new ReqnrollPlugin("Reqnroll.xunit.v3", ReqnrollPluginType.Runtime));
-            }
+            AddReqnrollPluginIfFeatureProject("Reqnroll.xunit.v3", "Reqnroll.xUnit3.ReqnrollPlugin.dll");
         }
 
         private void ConfigureMSTest()
@@ -377,25 +353,14 @@ namespace Reqnroll.TestProjectGenerator
                     "Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL",
                     "net45\\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll"));
 
-            if (IsReqnrollFeatureProject)
-            {
-                _project.AddNuGetPackage("Reqnroll.MSTest", _currentVersionDriver.ReqnrollNuGetVersion,
-                    new NuGetPackageAssembly(GetReqnrollPublicAssemblyName("Reqnroll.MSTest.ReqnrollPlugin.dll"), "net462\\Reqnroll.MSTest.ReqnrollPlugin.dll"));
-                Configuration.Plugins.Add(new ReqnrollPlugin("Reqnroll.MSTest", ReqnrollPluginType.Runtime));
-            }
+            AddReqnrollPluginIfFeatureProject("Reqnroll.MSTest", "Reqnroll.MSTest.ReqnrollPlugin.dll");
         }
 
         private void ConfigureMSTest4()
         {
             _project.AddNuGetPackage("MSTest.TestAdapter", MSTest4PackageVersion);
             _project.AddNuGetPackage("MSTest.TestFramework", MSTest4PackageVersion);
-
-            if (IsReqnrollFeatureProject)
-            {
-                _project.AddNuGetPackage("Reqnroll.MSTest", _currentVersionDriver.ReqnrollNuGetVersion,
-                                         new NuGetPackageAssembly(GetReqnrollPublicAssemblyName("Reqnroll.MSTest.ReqnrollPlugin.dll"), "net462\\Reqnroll.MSTest.ReqnrollPlugin.dll"));
-                Configuration.Plugins.Add(new ReqnrollPlugin("Reqnroll.MSTest", ReqnrollPluginType.Runtime));
-            }
+            AddReqnrollPluginIfFeatureProject("Reqnroll.MSTest", "Reqnroll.MSTest.ReqnrollPlugin.dll");
         }
 
         private void ConfigureTUnit()
@@ -432,12 +397,15 @@ namespace Reqnroll.TestProjectGenerator
                 _project.AddAdditionalPropertyGroupEntry("TestingPlatformDotnetTestSupport", "true");
             }
 
-            if (IsReqnrollFeatureProject)
-            {
-                _project.AddNuGetPackage("Reqnroll.TUnit", _currentVersionDriver.ReqnrollNuGetVersion,
-                                         new NuGetPackageAssembly(GetReqnrollPublicAssemblyName("Reqnroll.TUnit.ReqnrollPlugin.dll"), "netstandard2.0\\Reqnroll.TUnit.ReqnrollPlugin.dll"));
-                Configuration.Plugins.Add(new ReqnrollPlugin("Reqnroll.TUnit", ReqnrollPluginType.Runtime));
-            }
+            AddReqnrollPluginIfFeatureProject("Reqnroll.TUnit", "Reqnroll.TUnit.ReqnrollPlugin.dll", "netstandard2.0");
+        }
+
+        private void AddReqnrollPluginIfFeatureProject(string packageName, string assemblyFileName, string assemblySubPath = "net462")
+        {
+            if (!IsReqnrollFeatureProject) return;
+            _project.AddNuGetPackage(packageName, _currentVersionDriver.ReqnrollNuGetVersion,
+                new NuGetPackageAssembly(GetReqnrollPublicAssemblyName(assemblyFileName), $"{assemblySubPath}\\{assemblyFileName}"));
+            Configuration.Plugins.Add(new ReqnrollPlugin(packageName, ReqnrollPluginType.Runtime));
         }
 
         private void ConfigureUseIntermediateOutputPathForCodeBehind(bool useIntermediateOutputPathForCodeBehind)
