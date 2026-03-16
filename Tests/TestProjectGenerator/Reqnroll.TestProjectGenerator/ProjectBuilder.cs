@@ -272,32 +272,21 @@ namespace Reqnroll.TestProjectGenerator
 
         private void ConfigureUnitTestProviderDependencies()
         {
-            switch (Configuration.UnitTestProvider)
+            var configurators = new Dictionary<UnitTestProvider, Action>
             {
-                case UnitTestProvider.MSTest:
-                    ConfigureMSTest();
-                    break;
-                case UnitTestProvider.MSTest4:
-                    ConfigureMSTest4();
-                    break;
-                case UnitTestProvider.xUnit:
-                    ConfigureXUnit();
-                    break;
-                case UnitTestProvider.xUnit3:
-                    ConfigureXUnit3();
-                    break;
-                case UnitTestProvider.NUnit3:
-                    ConfigureNUnit3();
-                    break;
-                case UnitTestProvider.NUnit4:
-                    ConfigureNUnit4();
-                    break;
-                case UnitTestProvider.TUnit:
-                    ConfigureTUnit();
-                    break;
-                default:
-                    throw new InvalidOperationException(@"Invalid unit test provider.");
-            }
+                [UnitTestProvider.MSTest]  = ConfigureMSTest,
+                [UnitTestProvider.MSTest4] = ConfigureMSTest4,
+                [UnitTestProvider.xUnit]   = ConfigureXUnit,
+                [UnitTestProvider.xUnit3]  = ConfigureXUnit3,
+                [UnitTestProvider.NUnit3]  = ConfigureNUnit3,
+                [UnitTestProvider.NUnit4]  = ConfigureNUnit4,
+                [UnitTestProvider.TUnit]   = ConfigureTUnit,
+            };
+
+            if (!configurators.TryGetValue(Configuration.UnitTestProvider, out var configure))
+                throw new InvalidOperationException("Invalid unit test provider.");
+
+            configure();
         }
 
         private void ConfigureNUnit3()
