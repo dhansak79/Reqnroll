@@ -451,33 +451,47 @@ namespace Reqnroll.TestProjectGenerator
 
         private void AddUnitTestProviderSpecificConfig()
         {
-            switch (Configuration.UnitTestProvider)
+            var configs = new Dictionary<UnitTestProvider, Action>
             {
-                case UnitTestProvider.xUnit when !_parallelTestExecution:
-                case UnitTestProvider.xUnit3 when !_parallelTestExecution:
-                    _project.AddFile(new ProjectFile("XUnitConfiguration.cs", "Compile", "using Xunit; [assembly: CollectionBehavior(MaxParallelThreads = 1, DisableTestParallelization = true)]"));
-                    break;
-                case UnitTestProvider.xUnit:
-                case UnitTestProvider.xUnit3:
-                    _project.AddFile(new ProjectFile("XUnitConfiguration.cs", "Compile", "using Xunit; [assembly: CollectionBehavior(CollectionBehavior.CollectionPerClass, MaxParallelThreads = 4)]"));
-                    break;
-                case UnitTestProvider.NUnit3 when _parallelTestExecution:
-                case UnitTestProvider.NUnit4 when _parallelTestExecution:
-                    _project.AddFile(new ProjectFile("NUnitConfiguration.cs", "Compile", "[assembly: NUnit.Framework.Parallelizable(NUnit.Framework.ParallelScope.All)]"));
-                    break;
-                case UnitTestProvider.MSTest when _parallelTestExecution:
-                case UnitTestProvider.MSTest4 when _parallelTestExecution:
-                    _project.AddFile(
-                        new ProjectFile("MsTestConfiguration.cs", "Compile", "using Microsoft.VisualStudio.TestTools.UnitTesting; [assembly: Parallelize(Workers = 4, Scope = ExecutionScope.MethodLevel)]"));
-                    break;
-                case UnitTestProvider.MSTest when !_parallelTestExecution:
-                case UnitTestProvider.MSTest4 when !_parallelTestExecution:
-                    _project.AddFile(new ProjectFile("MsTestConfiguration.cs", "Compile", "using Microsoft.VisualStudio.TestTools.UnitTesting; [assembly: DoNotParallelize]"));
-                    break;
-                case UnitTestProvider.TUnit when !_parallelTestExecution:
-                    _project.AddFile(new ProjectFile("TUnitConfiguration.cs", "Compile", "using TUnit.Core; [assembly: NotInParallel]"));
-                    break;
-            }
+                [UnitTestProvider.xUnit]   = AddXUnitConfig,
+                [UnitTestProvider.xUnit3]  = AddXUnitConfig,
+                [UnitTestProvider.NUnit3]  = AddNUnitConfig,
+                [UnitTestProvider.NUnit4]  = AddNUnitConfig,
+                [UnitTestProvider.MSTest]  = AddMSTestConfig,
+                [UnitTestProvider.MSTest4] = AddMSTestConfig,
+                [UnitTestProvider.TUnit]   = AddTUnitConfig,
+            };
+
+            if (configs.TryGetValue(Configuration.UnitTestProvider, out var configure))
+                configure();
+        }
+
+        private void AddXUnitConfig()
+        {
+            var content = _parallelTestExecution
+                ? "using Xunit; [assembly: CollectionBehavior(CollectionBehavior.CollectionPerClass, MaxParallelThreads = 4)]"
+                : "using Xunit; [assembly: CollectionBehavior(MaxParallelThreads = 1, DisableTestParallelization = true)]";
+            _project.AddFile(new ProjectFile("XUnitConfiguration.cs", "Compile", content));
+        }
+
+        private void AddNUnitConfig()
+        {
+            if (!_parallelTestExecution) return;
+            _project.AddFile(new ProjectFile("NUnitConfiguration.cs", "Compile", "[assembly: NUnit.Framework.Parallelizable(NUnit.Framework.ParallelScope.All)]"));
+        }
+
+        private void AddMSTestConfig()
+        {
+            var content = _parallelTestExecution
+                ? "using Microsoft.VisualStudio.TestTools.UnitTesting; [assembly: Parallelize(Workers = 4, Scope = ExecutionScope.MethodLevel)]"
+                : "using Microsoft.VisualStudio.TestTools.UnitTesting; [assembly: DoNotParallelize]";
+            _project.AddFile(new ProjectFile("MsTestConfiguration.cs", "Compile", content));
+        }
+
+        private void AddTUnitConfig()
+        {
+            if (_parallelTestExecution) return;
+            _project.AddFile(new ProjectFile("TUnitConfiguration.cs", "Compile", "using TUnit.Core; [assembly: NotInParallel]"));
         }
 
         private string GetReqnrollPublicAssemblyName(string assemblyName)
