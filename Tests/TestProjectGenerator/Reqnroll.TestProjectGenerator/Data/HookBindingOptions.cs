@@ -4,6 +4,8 @@ namespace Reqnroll.TestProjectGenerator.Data
 {
     public record HookBindingOptions
     {
+        public string EventType { get; init; }
+        public string Name { get; init; }
         public string Code { get; init; } = "";
         public bool? AsyncHook { get; init; }
         public int? Order { get; init; }

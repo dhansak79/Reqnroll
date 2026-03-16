@@ -67,8 +67,10 @@ namespace Reqnroll.TestProjectGenerator.Driver
 
         private void AddHookBinding(ProjectBuilder project, string eventType, string name, string code = "", bool? asyncHook = null, int? order = null, IList<string> hookTypeAttributeTags = null, IList<string> methodScopeAttributeTags = null, IList<string> classScopeAttributeTags = null)
         {
-            project.AddHookBinding(eventType, name, new HookBindingOptions
+            project.AddHookBinding(new HookBindingOptions
             {
+                EventType = eventType,
+                Name = name,
                 Code = code,
                 AsyncHook = asyncHook,
                 Order = order,
@@ -102,12 +104,12 @@ namespace Reqnroll.TestProjectGenerator.Driver
 
         public void AddStepBinding(string attributeName, string regex, string csharpcode, string vbnetcode = null)
         {
-            _solutionDriver.DefaultProject.AddStepBinding(attributeName, regex, csharpcode, vbnetcode);
+            _solutionDriver.DefaultProject.AddStepBinding(new StepDefinitionHeader(attributeName, regex), new LanguageSpecificCode(csharpcode, vbnetcode));
         }
 
         public void AddLoggingStepBinding(string attributeName, string methodName, string regex)
         {
-            _solutionDriver.DefaultProject.AddLoggingStepBinding(attributeName, methodName, regex);
+            _solutionDriver.DefaultProject.AddLoggingStepBinding(methodName, new StepDefinitionHeader(attributeName, regex));
         }
 
         public void AddStepBinding(string projectName, string bindingCode) => AddStepBinding(_solutionDriver.Projects[projectName], bindingCode);
@@ -160,7 +162,7 @@ namespace Reqnroll.TestProjectGenerator.Driver
 
         public void AddNuGetPackage(string nugetPackage, string nugetVersion)
         {
-            _solutionDriver.DefaultProject.AddNuGetPackage(nugetPackage, nugetVersion);
+            _solutionDriver.DefaultProject.AddNuGetPackage(new NuGetPackageId(nugetPackage, nugetVersion));
         }
 
         public void AddFailingStepBinding(string scenarioBlock = "StepDefinition", string stepRegex = ".*")

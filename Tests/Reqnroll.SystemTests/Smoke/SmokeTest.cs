@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reqnroll.TestProjectGenerator.Data;
 
 namespace Reqnroll.SystemTests.Smoke;
@@ -25,7 +25,7 @@ public class SmokeTest : SystemTestBase
 
         var externalLib = _projectsDriver.CreateProject("ExternalStepsLibrary", "C#", ProjectType.Library)!;
         externalLib.IsReqnrollFeatureProject = false;
-        externalLib.AddStepBinding("When", "something happens in external lib", "//pass", null);
+        externalLib.AddStepBinding(new StepDefinitionHeader("When", "something happens in external lib"), new LanguageSpecificCode("//pass", null));
 
         _projectsDriver.AddProjectReference(externalLib.ProjectName);
         _solutionDriver.DefaultProject.Configuration.BindingAssemblies.Add(new BindingAssembly(externalLib.ProjectName));

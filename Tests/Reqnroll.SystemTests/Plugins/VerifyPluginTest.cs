@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reqnroll.TestProjectGenerator;
+using Reqnroll.TestProjectGenerator.Data;
 
 namespace Reqnroll.SystemTests.Plugins;
 
@@ -14,7 +15,7 @@ public class VerifyPluginTest : PluginsTestBase
         _testRunConfiguration.UnitTestProvider = UnitTestProvider.xUnit;
         _projectsDriver.AddNuGetPackage("Reqnroll.Verify", _currentVersionDriver.ReqnrollNuGetVersion);
         // use the minimum version of xunit that is compatible with the Verify plugin
-        _solutionDriver.DefaultProject.UpdateNuGetPackage("xunit", "2.9.3");
+        _solutionDriver.DefaultProject.UpdateNuGetPackage(new NuGetPackageId("xunit", "2.9.3"));
     }
 
     [TestMethod]

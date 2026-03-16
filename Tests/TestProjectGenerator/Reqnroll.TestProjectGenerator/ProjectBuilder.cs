@@ -90,36 +90,35 @@ namespace Reqnroll.TestProjectGenerator
             return featureFile;
         }
 
-        public void AddStepBinding(string attributeName, string regex, string csharpcode, string vbnetcode)
+        public void AddStepBinding(StepDefinitionHeader step, LanguageSpecificCode code)
         {
             EnsureProjectExists();
 
-            var methodImplementation = GetCode(_project.ProgrammingLanguage, csharpcode, vbnetcode);
+            var methodImplementation = GetCode(_project.ProgrammingLanguage, code);
             var bindingsGenerator = _bindingsGeneratorFactory.FromLanguage(_project.ProgrammingLanguage);
 
-            _project.AddFile(bindingsGenerator.GenerateStepDefinition("StepBinding", methodImplementation, attributeName, regex));
-            _project.AddFile(bindingsGenerator.GenerateStepDefinition("StepBinding", methodImplementation, attributeName, regex, ParameterType.Table, "tableArg"));
-            _project.AddFile(bindingsGenerator.GenerateStepDefinition("StepBinding", methodImplementation, attributeName, regex, ParameterType.DocString, "docStringArg"));
+            _project.AddFile(bindingsGenerator.GenerateStepDefinition("StepBinding", methodImplementation, step.AttributeName, step.Regex));
+            _project.AddFile(bindingsGenerator.GenerateStepDefinition("StepBinding", methodImplementation, step.AttributeName, step.Regex, ParameterType.Table, "tableArg"));
+            _project.AddFile(bindingsGenerator.GenerateStepDefinition("StepBinding", methodImplementation, step.AttributeName, step.Regex, ParameterType.DocString, "docStringArg"));
         }
 
-        public void AddLoggingStepBinding(string attributeName, string methodName, string regex)
+        public void AddLoggingStepBinding(string methodName, StepDefinitionHeader step)
         {
             EnsureProjectExists();
 
             var bindingsGenerator = _bindingsGeneratorFactory.FromLanguage(_project.ProgrammingLanguage);
 
-            _project.AddFile(bindingsGenerator.GenerateLoggingStepDefinition(methodName, attributeName, regex));
-            _project.AddFile(bindingsGenerator.GenerateLoggingStepDefinition(methodName, attributeName, regex, ParameterType.Table, "tableArg"));
-            _project.AddFile(bindingsGenerator.GenerateLoggingStepDefinition(methodName, attributeName, regex, ParameterType.DocString, "docStringArg"));
+            _project.AddFile(bindingsGenerator.GenerateLoggingStepDefinition(methodName, step.AttributeName, step.Regex));
+            _project.AddFile(bindingsGenerator.GenerateLoggingStepDefinition(methodName, step.AttributeName, step.Regex, ParameterType.Table, "tableArg"));
+            _project.AddFile(bindingsGenerator.GenerateLoggingStepDefinition(methodName, step.AttributeName, step.Regex, ParameterType.DocString, "docStringArg"));
         }
 
-        public void AddHookBinding(string eventType, string name, HookBindingOptions options = null)
+        public void AddHookBinding(HookBindingOptions options)
         {
             EnsureProjectExists();
-            options ??= new HookBindingOptions();
 
             var bindingsGenerator = _bindingsGeneratorFactory.FromLanguage(_project.ProgrammingLanguage);
-            _project.AddFile(bindingsGenerator.GenerateHookBinding(eventType, name, options.Code, options.AsyncHook, options.Order, options.HookTypeAttributeTags, options.MethodScopeAttributeTags, options.ClassScopeAttributeTags));
+            _project.AddFile(bindingsGenerator.GenerateHookBinding(options.EventType, options.Name, options.Code, options.AsyncHook, options.Order, options.HookTypeAttributeTags, options.MethodScopeAttributeTags, options.ClassScopeAttributeTags));
         }
 
         public void AddStepBinding(string bindingCode)
@@ -162,15 +161,15 @@ namespace Reqnroll.TestProjectGenerator
             return _project;
         }
 
-        private string GetCode(ProgrammingLanguage language, string csharpcode, string vbnetcode)
+        private string GetCode(ProgrammingLanguage language, LanguageSpecificCode code)
         {
             switch (language)
             {
                 case ProgrammingLanguage.CSharp73:
                 case ProgrammingLanguage.CSharp:
-                    return csharpcode;
+                    return code.CSharp;
                 case ProgrammingLanguage.VB:
-                    return vbnetcode;
+                    return code.VBNet;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(language), language, null);
             }
@@ -279,18 +278,24 @@ namespace Reqnroll.TestProjectGenerator
             configure();
         }
 
+        private static readonly ReqnrollPluginReference NUnitPlugin = new("Reqnroll.NUnit", "Reqnroll.NUnit.ReqnrollPlugin.dll");
+        private static readonly ReqnrollPluginReference XUnitPlugin = new("Reqnroll.xUnit", "Reqnroll.xUnit.ReqnrollPlugin.dll");
+        private static readonly ReqnrollPluginReference XUnit3Plugin = new("Reqnroll.xunit.v3", "Reqnroll.xUnit3.ReqnrollPlugin.dll");
+        private static readonly ReqnrollPluginReference MSTestPlugin = new("Reqnroll.MSTest", "Reqnroll.MSTest.ReqnrollPlugin.dll");
+        private static readonly ReqnrollPluginReference TUnitPlugin = new("Reqnroll.TUnit", "Reqnroll.TUnit.ReqnrollPlugin.dll", "netstandard2.0");
+
         private void ConfigureNUnit3()
         {
             _project.AddNuGetPackage(NUnit3PackageName, NUnit3PackageVersion);
             _project.AddNuGetPackage(NUnit3TestAdapterPackageName, NUnit3TestAdapterPackageVersion);
-            AddReqnrollPluginIfFeatureProject("Reqnroll.NUnit", "Reqnroll.NUnit.ReqnrollPlugin.dll");
+            AddReqnrollPluginIfFeatureProject(NUnitPlugin);
         }
 
         private void ConfigureNUnit4()
         {
             _project.AddNuGetPackage(NUnit4PackageName, NUnit4PackageVersion);
             _project.AddNuGetPackage(NUnit4TestAdapterPackageName, NUnit4TestAdapterPackageVersion);
-            AddReqnrollPluginIfFeatureProject("Reqnroll.NUnit", "Reqnroll.NUnit.ReqnrollPlugin.dll");
+            AddReqnrollPluginIfFeatureProject(NUnitPlugin);
         }
 
         private void ConfigureXUnit()
@@ -320,14 +325,14 @@ namespace Reqnroll.TestProjectGenerator
                 _project.AddNuGetPackage("Validation", "2.4.18", new NuGetPackageAssembly("Validation, Version=2.4.0.0, Culture=neutral, PublicKeyToken=2fc06f0d701809a7", "net45\\Validation.dll"));
             }
 
-            AddReqnrollPluginIfFeatureProject("Reqnroll.xUnit", "Reqnroll.xUnit.ReqnrollPlugin.dll");
+            AddReqnrollPluginIfFeatureProject(XUnitPlugin);
         }
 
         private void ConfigureXUnit3()
         {
             _project.AddNuGetPackage("xunit.v3", XUnit3PackageVersion);
             _project.AddNuGetPackage("xunit.runner.visualstudio", "3.0.2");
-            AddReqnrollPluginIfFeatureProject("Reqnroll.xunit.v3", "Reqnroll.xUnit3.ReqnrollPlugin.dll");
+            AddReqnrollPluginIfFeatureProject(XUnit3Plugin);
         }
 
         private void ConfigureMSTest()
@@ -343,14 +348,14 @@ namespace Reqnroll.TestProjectGenerator
                     "Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL",
                     "net45\\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll"));
 
-            AddReqnrollPluginIfFeatureProject("Reqnroll.MSTest", "Reqnroll.MSTest.ReqnrollPlugin.dll");
+            AddReqnrollPluginIfFeatureProject(MSTestPlugin);
         }
 
         private void ConfigureMSTest4()
         {
             _project.AddNuGetPackage("MSTest.TestAdapter", MSTest4PackageVersion);
             _project.AddNuGetPackage("MSTest.TestFramework", MSTest4PackageVersion);
-            AddReqnrollPluginIfFeatureProject("Reqnroll.MSTest", "Reqnroll.MSTest.ReqnrollPlugin.dll");
+            AddReqnrollPluginIfFeatureProject(MSTestPlugin);
         }
 
         private void ConfigureTUnit()
@@ -387,15 +392,15 @@ namespace Reqnroll.TestProjectGenerator
                 _project.AddAdditionalPropertyGroupEntry("TestingPlatformDotnetTestSupport", "true");
             }
 
-            AddReqnrollPluginIfFeatureProject("Reqnroll.TUnit", "Reqnroll.TUnit.ReqnrollPlugin.dll", "netstandard2.0");
+            AddReqnrollPluginIfFeatureProject(TUnitPlugin);
         }
 
-        private void AddReqnrollPluginIfFeatureProject(string packageName, string assemblyFileName, string assemblySubPath = "net462")
+        private void AddReqnrollPluginIfFeatureProject(ReqnrollPluginReference plugin)
         {
             if (!IsReqnrollFeatureProject) return;
-            _project.AddNuGetPackage(packageName, _currentVersionDriver.ReqnrollNuGetVersion,
-                new NuGetPackageAssembly(GetReqnrollPublicAssemblyName(assemblyFileName), $"{assemblySubPath}\\{assemblyFileName}"));
-            Configuration.Plugins.Add(new ReqnrollPlugin(packageName, ReqnrollPluginType.Runtime));
+            _project.AddNuGetPackage(plugin.PackageName, _currentVersionDriver.ReqnrollNuGetVersion,
+                new NuGetPackageAssembly(GetReqnrollPublicAssemblyName(plugin.AssemblyFileName), $"{plugin.AssemblySubPath}\\{plugin.AssemblyFileName}"));
+            Configuration.Plugins.Add(new ReqnrollPlugin(plugin.PackageName, ReqnrollPluginType.Runtime));
         }
 
         private void ConfigureUseIntermediateOutputPathForCodeBehind(bool useIntermediateOutputPathForCodeBehind)
@@ -477,22 +482,17 @@ namespace Reqnroll.TestProjectGenerator
             return Path.Combine("bin", "Debug");
         }
 
-        public void AddMSBuildTarget(string targetName, string implementation)
-        {
-            _project.AddTarget(targetName, implementation);
-        }
-
-        public void AddNuGetPackage(string nugetPackage, string nugetVersion = null)
+        public void AddNuGetPackage(NuGetPackageId package)
         {
             EnsureProjectExists();
-            _project.AddNuGetPackage(nugetPackage, nugetVersion);
+            _project.AddNuGetPackage(package.Name, package.Version);
         }
 
-        public void UpdateNuGetPackage(string nugetPackage, string nugetVersion)
+        public void UpdateNuGetPackage(NuGetPackageId package)
         {
             EnsureProjectExists();
-            _project.RemoveNuGetPackage(nugetPackage);
-            _project.AddNuGetPackage(nugetPackage, nugetVersion);
+            _project.RemoveNuGetPackage(package.Name);
+            _project.AddNuGetPackage(package.Name, package.Version);
         }
     }
 }
