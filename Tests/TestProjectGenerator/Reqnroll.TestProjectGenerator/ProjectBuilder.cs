@@ -4,8 +4,6 @@ using System.IO;
 using Reqnroll.TestProjectGenerator.ConfigurationModel;
 using Reqnroll.TestProjectGenerator.Data;
 using Reqnroll.TestProjectGenerator.Driver;
-using Reqnroll.TestProjectGenerator.Factories.BindingsGenerator;
-using Reqnroll.TestProjectGenerator.Factories.ConfigurationGenerator;
 
 namespace Reqnroll.TestProjectGenerator
 {
@@ -35,24 +33,16 @@ namespace Reqnroll.TestProjectGenerator
         private bool _parallelTestExecution;
         private Project _project;
 
-        public ProjectBuilder(
-            TestProjectFolders testProjectFolders,
-            FeatureFileGenerator featureFileGenerator,
-            BindingsGeneratorFactory bindingsGeneratorFactory,
-            ConfigurationGeneratorFactory configurationGeneratorFactory,
-            Configuration configuration,
-            CurrentVersionDriver currentVersionDriver,
-            Folders folders,
-            TargetFrameworkMonikerStringBuilder targetFrameworkMonikerStringBuilder)
+        public ProjectBuilder(ProjectBuilderServices services, Configuration configuration)
         {
-            _testProjectFolders = testProjectFolders;
-            _featureFileGenerator = featureFileGenerator;
-            _bindingsGeneratorFactory = bindingsGeneratorFactory;
-            _configurationGeneratorFactory = configurationGeneratorFactory;
+            _testProjectFolders = services.TestProjectFolders;
+            _featureFileGenerator = services.FeatureFileGenerator;
+            _bindingsGeneratorFactory = services.BindingsGeneratorFactory;
+            _configurationGeneratorFactory = services.ConfigurationGeneratorFactory;
             Configuration = configuration;
-            _currentVersionDriver = currentVersionDriver;
-            _folders = folders;
-            _targetFrameworkMonikerStringBuilder = targetFrameworkMonikerStringBuilder;
+            _currentVersionDriver = services.CurrentVersionDriver;
+            _folders = services.Folders;
+            _targetFrameworkMonikerStringBuilder = services.TargetFrameworkMonikerStringBuilder;
             var projectGuidString = $"{ProjectGuid:N}".Substring(24);
             ProjectName = $"TestProj_{projectGuidString}";
         }

@@ -1,40 +1,18 @@
 using Reqnroll.TestProjectGenerator.ConfigurationModel;
 using Reqnroll.TestProjectGenerator.Data;
-using Reqnroll.TestProjectGenerator.Factories.BindingsGenerator;
-using Reqnroll.TestProjectGenerator.Factories.ConfigurationGenerator;
 using Reqnroll.TestProjectGenerator.Helpers;
 
 namespace Reqnroll.TestProjectGenerator.Factories
 {
     public class ProjectBuilderFactory
     {
-        protected readonly FeatureFileGenerator _featureFileGenerator;
-        protected readonly Folders _folders;
-        protected readonly TargetFrameworkMonikerStringBuilder _targetFrameworkMonikerStringBuilder;
-        protected readonly BindingsGeneratorFactory _bindingsGeneratorFactory;
-        protected readonly ConfigurationGeneratorFactory _configurationGeneratorFactory;
-        protected readonly CurrentVersionDriver _currentVersionDriver;
-        protected readonly TestProjectFolders _testProjectFolders;
+        protected readonly ProjectBuilderServices _projectBuilderServices;
         protected readonly TestRunConfiguration _testRunConfiguration;
 
-        public ProjectBuilderFactory(
-            TestProjectFolders testProjectFolders,
-            TestRunConfiguration testRunConfiguration,
-            CurrentVersionDriver currentVersionDriver,
-            ConfigurationGeneratorFactory configurationGeneratorFactory,
-            BindingsGeneratorFactory bindingsGeneratorFactory,
-            FeatureFileGenerator featureFileGenerator,
-            Folders folders,
-            TargetFrameworkMonikerStringBuilder targetFrameworkMonikerStringBuilder)
+        public ProjectBuilderFactory(ProjectBuilderServices projectBuilderServices, TestRunConfiguration testRunConfiguration)
         {
-            _testProjectFolders = testProjectFolders;
+            _projectBuilderServices = projectBuilderServices;
             _testRunConfiguration = testRunConfiguration;
-            _currentVersionDriver = currentVersionDriver;
-            _configurationGeneratorFactory = configurationGeneratorFactory;
-            _bindingsGeneratorFactory = bindingsGeneratorFactory;
-            _featureFileGenerator = featureFileGenerator;
-            _folders = folders;
-            _targetFrameworkMonikerStringBuilder = targetFrameworkMonikerStringBuilder;
         }
 
         public ProjectBuilder CreateProject(string language)
@@ -110,9 +88,7 @@ namespace Reqnroll.TestProjectGenerator.Factories
 
         protected virtual ProjectBuilder CreateProjectBuilder()
         {
-            var configuration = new Configuration();
-
-            return new ProjectBuilder(_testProjectFolders, _featureFileGenerator, _bindingsGeneratorFactory, _configurationGeneratorFactory, configuration, _currentVersionDriver, _folders, _targetFrameworkMonikerStringBuilder);
+            return new ProjectBuilder(_projectBuilderServices, new Configuration());
         }
     }
 }
