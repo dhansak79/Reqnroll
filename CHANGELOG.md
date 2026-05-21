@@ -4,8 +4,9 @@
 * Updated Cucumber dependencies to: Gherkin v39.1.0, Cucumber.Messages v32.0.1 and Cucumber.HtmlFormatter v23.1.0. Formatters.Tests modified by adopting use of Cucumber/CCK (v29.2.2). (#984)
 
 ## Bug fixes:
+* Fix: GenerateFeatureFileCodeBehindTask fails with misleading DirectoryNotFoundException when ndjson output path exceeds Windows MAX_PATH (260)
 
-*Contributors of this release (in alphabetical order):* 
+*Contributors of this release (in alphabetical order):* @clrudolphi
 
 # v3.3.4 - 2026-03-23
 
